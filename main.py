@@ -1,5 +1,6 @@
 import json
 import uuid
+from contextlib import asynccontextmanager
 from datetime import timedelta
 from typing import Optional
 
@@ -30,7 +31,17 @@ from models import (
     User,
 )
 
-app = FastAPI(title="Insper Code Blockchain News API")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    create_db_and_tables()
+    create_default_user()
+    create_sample_articles()
+
+    yield
+
+
+app = FastAPI(title="Insper Code Blockchain News API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -39,13 +50,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.on_event("startup")
-def on_startup():
-    create_db_and_tables()
-    create_default_user()
-    create_sample_articles()
 
 
 @app.post("/auth/login", response_model=AuthResponse)
