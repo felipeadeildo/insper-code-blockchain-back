@@ -5,7 +5,7 @@ from typing import Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
 
 from auth import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
@@ -81,8 +81,8 @@ def get_articles(
     category: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     search: Optional[str] = Query(None),
-    limit: Optional[int] = Query(10),
-    offset: Optional[int] = Query(0),
+    limit: int = Query(10),
+    offset: int = Query(0),
     session: Session = Depends(get_session),
 ):
     query = select(Article)
@@ -93,7 +93,7 @@ def get_articles(
         query = query.where(Article.status == status)
     if search:
         query = query.where(
-            Article.title.contains(search) | Article.content.contains(search)
+            col(Article.title).contains(search) | col(Article.content).contains(search)
         )
 
     total_query = query

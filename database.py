@@ -1,9 +1,9 @@
 import json
 import uuid
 
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine, select
 
-from models import Article, User, CategoryEnum, StatusEnum
+from models import Article, CategoryEnum, StatusEnum, User
 
 DATABASE_URL = "sqlite:///./blockchain.db"
 engine = create_engine(DATABASE_URL, echo=True)
@@ -20,9 +20,9 @@ def get_session():
 
 def create_default_user():
     with Session(engine) as session:
-        existing_user = (
-            session.query(User).filter(User.email == "admin@example.com").first()
-        )
+        existing_user = session.exec(
+            select(User).where(User.email == "admin@example.com")
+        ).first()
         if not existing_user:
             from auth import hash_password
 
